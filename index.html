@@ -251,6 +251,20 @@ function n(v,def=0){const x=parseFloat(v);return isNaN(x)?def:x;}
 function sc(v){return n(v)>0?n(v).toFixed(1):'—';}
 function avg(arr,key){const vs=arr.map(r=>n(r[key])).filter(v=>v>0);return vs.length?vs.reduce((a,b)=>a+b,0)/vs.length:0;}
 function displayName(r){return r.student_name||r.searching_id||'—';}
+// Issues breakdown: NPS detractor + rating rendah + complaint (jangan digabung jadi 1 angka tanpa konteks)
+function issuesCount(r){
+  return n(r.jumlah_nps_detractor)+n(r.jumlah_rating_rendah)+n(r.jumlah_complaint);
+}
+// Daftar program during-program yang valid untuk dashboard ini (safety net kalau data BQ belum terfilter)
+const VALID_PROGRAMS=['Ausbildung (Jerman)','Tokutei Ginou (Jepang)','WA to Multiple Country - White Collar','WA to Multiple Country - Blue Collar'];
+function isValidProgram(p){
+  if(!p) return false;
+  return /ausbildung|tokutei|white collar|blue collar/i.test(p);
+}
+function isDuringProgramBatch(batchName){
+  if(!batchName) return false;
+  return /ausbildung|tokutei/i.test(batchName);
+}
 
 function tierBadge(t){
   if(!t) return '<span class="badge" style="background:var(--gray-bg);color:var(--gray-dk)">—</span>';
@@ -286,7 +300,7 @@ function buildFilters(opts,fkey){
   let html='';
   if(opts.search!==false) html+=`<div><div class="f-label">Cari</div><input class="f-input" value="${f.search||''}" placeholder="Ketik untuk cari..." oninput="filters['${fkey}'].search=this.value;renderTab()"></div>`;
   if(opts.program){
-    const progs=[...new Set(DATA[fkey].map(r=>r.program).filter(Boolean))].sort();
+    const progs=[...new Set(DATA[fkey].map(r=>r.program).filter(p=>p&&isValidProgram(p)))].sort();
     html+=`<div><div class="f-label">Program</div><select class="f-input" onchange="filters['${fkey}'].program=this.value;renderTab()">
       <option value="">Semua program</option>${progs.map(p=>`<option value="${p}"${f.program===p?' selected':''}>${p}</option>`).join('')}
     </select></div>`;
@@ -298,16 +312,16 @@ function buildFilters(opts,fkey){
     </select></div>`;
   }
   if(opts.batch){
-    const batches=[...new Set(DATA[fkey].map(r=>r.batch).filter(Boolean))].sort();
+    const batches=[...new Set(DATA[fkey].map(r=>r.batch).filter(b=>b&&isDuringProgramBatch(b)))].sort();
     html+=`<div><div class="f-label">Batch</div><select class="f-input" onchange="filters['${fkey}'].batch=this.value;renderTab()">
       <option value="">Semua batch</option>${batches.map(p=>`<option value="${p}"${f.batch===p?' selected':''}>${p}</option>`).join('')}
     </select></div>`;
   }
   if(opts.event){
-    // Extract unique events dari list_sesi (pipe-separated)
+    // Extract unique events dari list_sesi (pipe-separated), hanya dari batch during-program
     const events=new Set();
     DATA.student.forEach(r=>{
-      if(r.list_sesi)(r.list_sesi||'').split('|').forEach(s=>{const t=s.trim();if(t)events.add(t);});
+      if(r.list_sesi&&isDuringProgramBatch(r.batch))(r.list_sesi||'').split('|').forEach(s=>{const t=s.trim();if(t)events.add(t);});
     });
     const evList=[...events].sort();
     html+=`<div><div class="f-label">Event / Logbook</div><select class="f-input" onchange="filters['${fkey}'].event=this.value;renderTab()">
@@ -335,6 +349,7 @@ function buildFilters(opts,fkey){
 function renderRegional(){
   const f=filters.regional;
   const data=DATA.regional.filter(r=>{
+    if(!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(r.regional||'').toLowerCase().includes(f.search.toLowerCase())) return false;
     if(f.program&&r.program!==f.program) return false;
     if(f.regional&&r.regional!==f.regional) return false;
@@ -371,7 +386,7 @@ function renderRegional(){
     <td>${tierBadge(r.tier_regional||r.tier)}</td><td style="text-align:right">${n(r.total_dapat_jo)}</td>
     <td style="font-family:'DM Mono',monospace">${sc(r.avg_mid_a1)||sc(r.avg_mid_n5)||'—'}</td>
     <td style="font-family:'DM Mono',monospace">${sc(r.avg_final_a1)||sc(r.avg_final_n5)||'—'}</td>
-    <td style="font-family:'DM Mono',monospace;color:${n(r.total_issues)>0?'var(--red)':'inherit'}">${n(r.total_issues)||0}</td>
+    <td style="font-family:'DM Mono',monospace;color:${issuesCount(r)>0?'var(--red)':'inherit'}">${issuesCount(r)||0}</td>
   </tr>`).join('');
 
   setMain(kpi+charts+`<div class="tcard"><div class="thead-row"><span class="ttitle">Data per Regional</span><span class="tcnt">${data.length} regional</span></div>
@@ -385,6 +400,7 @@ function renderRegional(){
 function renderBatch(){
   const f=filters.batch;
   const data=DATA.batch.filter(r=>{
+    if(!isDuringProgramBatch(r.batch)&&!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(r.batch||'').toLowerCase().includes(f.search.toLowerCase())) return false;
     if(f.program&&r.program!==f.program) return false;
     if(f.regional&&r.regional!==f.regional) return false;
@@ -397,14 +413,22 @@ function renderBatch(){
   const totSt=data.reduce((s,r)=>s+n(r.total_student),0);
   const avgH=avg(data,'avg_kehadiran');
   const avgN=avg(data,'avg_nilai_akumulasi');
-  const totIss=data.reduce((s,r)=>s+n(r.total_issues),0);
+  const totIss=data.reduce((s,r)=>s+issuesCount(r),0);
+
+  const jumlahDetractorB=data.reduce((s,r)=>s+n(r.jumlah_nps_detractor),0);
+  const jumlahRatingRendahB=data.reduce((s,r)=>s+n(r.jumlah_rating_rendah),0);
+  const jumlahComplaintB=data.reduce((s,r)=>s+n(r.jumlah_complaint),0);
 
   const kpi=`<div class="kpi-row">
     <div class="kpi"><div class="kpi-l">Total Batch</div><div class="kpi-v">${data.length}</div><div class="kpi-s">Dalam filter aktif</div></div>
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${totSt.toLocaleString('id')}</div><div class="kpi-s">Semua batch terpilih</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata antar batch</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
     <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div class="kpi-s">Akumulasi mid & final</div></div>
-    <div class="kpi"><div class="kpi-l">Total Issues</div><div class="kpi-v" style="color:var(--red)">${totIss.toLocaleString('id')}</div><div class="kpi-s">NPS + Rating + Complaint</div></div>
+    <div class="kpi"><div class="kpi-l">Feedback Perlu Perhatian</div><div style="display:flex;gap:10px;margin-top:2px">
+      <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahDetractorB}</div><div style="font-size:9px;color:var(--text3)">Detractor</div></div>
+      <div><div class="kpi-v" style="font-size:18px;color:var(--amber)">${jumlahRatingRendahB}</div><div style="font-size:9px;color:var(--text3)">Rating Rendah</div></div>
+      <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahComplaintB}</div><div style="font-size:9px;color:var(--text3)">Complaint</div></div>
+    </div></div>
   </div>`;
 
   const charts=`<div class="charts-row">
@@ -428,7 +452,7 @@ function renderBatch(){
     <td>${tierBadge(r.tier||r.tier_regional)}</td>
     <td style="text-align:right;font-family:'DM Mono',monospace">${n(r.partisipan_mid_a1)||n(r.partisipan_mid_n5)||'—'}</td>
     <td style="text-align:right;font-family:'DM Mono',monospace">${n(r.partisipan_final_a1)||n(r.partisipan_final_n5)||'—'}</td>
-    <td style="font-family:'DM Mono',monospace;color:${n(r.total_issues)>0?'var(--red)':'inherit'}">${n(r.total_issues)||0}</td>
+    <td style="font-family:'DM Mono',monospace;color:${issuesCount(r)>0?'var(--red)':'inherit'}">${issuesCount(r)||0}</td>
     <td>${joBadge(n(r.total_dapat_jo)>0?'Dapat JO':'Belum JO')}</td>
   </tr>`).join('');
 
@@ -462,7 +486,7 @@ function openBatchDetail(i){
     <div style="display:flex;flex-wrap:wrap;gap:5px">${[['Mid A1','partisipan_mid_a1'],['Final A1','partisipan_final_a1'],['Mid N5','partisipan_mid_n5'],['Final N5','partisipan_final_n5'],['Mid N4','partisipan_mid_n4'],['Final N4','partisipan_final_n4']].filter(([l,k])=>n(r[k])>0).map(([l,k])=>`<span style="background:var(--purple-bg);color:var(--purple-dk);font-size:10px;padding:2px 8px;border-radius:20px">${l}: ${n(r[k])}</span>`).join('')}</div>
     <div class="dp-kpi" style="margin-top:8px">
       <div class="dp-kc"><div class="dp-kl">NPS Promoter</div><div class="dp-kv" style="color:var(--green)">${n(r.nps_promoter)}</div></div>
-      <div class="dp-kc"><div class="dp-kl">Total Issues</div><div class="dp-kv" style="color:var(--red)">${n(r.total_issues)}</div></div>
+      <div class="dp-kc"><div class="dp-kl">Total Issues</div><div class="dp-kv" style="color:var(--red)">${issuesCount(r)}</div></div>
       <div class="dp-kc"><div class="dp-kl">Dapat JO</div><div class="dp-kv" style="color:var(--teal)">${n(r.total_dapat_jo)}</div></div>
       <div class="dp-kc"><div class="dp-kl">Avg Rating</div><div class="dp-kv">${sc(r.avg_session_rating)}</div></div>
     </div>`;
@@ -473,6 +497,7 @@ function openBatchDetail(i){
 function renderStudent(){
   const f=filters.student;
   const data=DATA.student.filter(r=>{
+    if(!isDuringProgramBatch(r.batch)&&!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(displayName(r)).toLowerCase().includes(f.search.toLowerCase())) return false;
     if(f.program&&r.program!==f.program) return false;
     if(f.batch&&r.batch!==f.batch) return false;
@@ -488,7 +513,7 @@ function renderStudent(){
       <div class="stat-card"><div class="stat-v">${data.length.toLocaleString('id')}</div><div class="stat-l">Student</div></div>
       <div class="stat-card"><div class="stat-v">${data.filter(r=>r.jo_flag==='Dapat JO').length}</div><div class="stat-l">Dapat JO</div></div>
       <div class="stat-card"><div class="stat-v">${avg(data,'pct_kehadiran').toFixed(0)}%</div><div class="stat-l">Avg Hadir</div></div>
-      <div class="stat-card"><div class="stat-v">${data.reduce((s,r)=>s+n(r.total_issues),0)}</div><div class="stat-l">Issues</div></div>
+      <div class="stat-card"><div class="stat-v">${data.reduce((s,r)=>s+issuesCount(r),0)}</div><div class="stat-l">Issues</div></div>
     </div>`);
 
   if(!data.length){setMain('<div class="empty">Tidak ada data student.</div>');return;}
@@ -496,14 +521,22 @@ function renderStudent(){
   const avgH=avg(data,'pct_kehadiran');
   const avgN=avg(data,'avg_nilai_akumulasi');
   const totJO=data.filter(r=>r.jo_flag==='Dapat JO').length;
-  const totIss=data.reduce((s,r)=>s+n(r.total_issues),0);
+  const totIss=data.reduce((s,r)=>s+issuesCount(r),0);
+
+  const jumlahDetractor=data.reduce((s,r)=>s+n(r.jumlah_nps_detractor),0);
+  const jumlahRatingRendah=data.reduce((s,r)=>s+n(r.jumlah_rating_rendah),0);
+  const jumlahComplaint=data.reduce((s,r)=>s+n(r.jumlah_complaint),0);
 
   const kpi=`<div class="kpi-row">
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${data.length.toLocaleString('id')}</div><div class="kpi-s">Dalam filter aktif</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata semua student</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
     <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div class="kpi-s">Akumulasi mid & final</div></div>
     <div class="kpi"><div class="kpi-l">Job Offer</div><div class="kpi-v">${totJO}</div><div class="kpi-s">${data.length>0?(totJO/data.length*100).toFixed(1)+'%':''} dari total</div></div>
-    <div class="kpi"><div class="kpi-l">Total Issues</div><div class="kpi-v" style="color:var(--red)">${totIss.toLocaleString('id')}</div><div class="kpi-s">NPS + Rating + Complaint</div></div>
+    <div class="kpi"><div class="kpi-l">Feedback Perlu Perhatian</div><div style="display:flex;gap:10px;margin-top:2px">
+      <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahDetractor}</div><div style="font-size:9px;color:var(--text3)">Detractor</div></div>
+      <div><div class="kpi-v" style="font-size:18px;color:var(--amber)">${jumlahRatingRendah}</div><div style="font-size:9px;color:var(--text3)">Rating Rendah</div></div>
+      <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahComplaint}</div><div style="font-size:9px;color:var(--text3)">Complaint</div></div>
+    </div></div>
   </div>`;
 
   const charts=`<div class="charts-row">
@@ -529,7 +562,7 @@ function renderStudent(){
     <td style="font-family:'DM Mono',monospace">${r.avg_nilai_akumulasi?sc(r.avg_nilai_akumulasi):'—'}</td>
     <td>${tierBadge(r.tier)}</td>
     <td>${npsBadge(r.nps_status_terakhir)}</td>
-    <td style="font-family:'DM Mono',monospace;color:${n(r.total_issues)>0?'var(--red)':'var(--text3)'}">${r.total_issues||'0'}</td>
+    <td style="font-family:'DM Mono',monospace;color:${issuesCount(r)>0?'var(--red)':'var(--text3)'}">${issuesCount(r)||'0'}</td>
     <td>${joBadge(r.jo_flag)}</td>
   </tr>`).join('');
 
@@ -560,9 +593,17 @@ function openStudentDetail(i){
     <div class="dp-kpi">
       <div class="dp-kc"><div class="dp-kl">Kehadiran</div><div class="dp-kv" style="color:var(--purple)">${sc(r.pct_kehadiran)}%</div><div style="font-size:10px;color:var(--text3)">${r.student_hadir||0} dari ${r.jumlah_sesi_terlaksana||'?'} sesi</div></div>
       <div class="dp-kc"><div class="dp-kl">Avg Nilai</div><div class="dp-kv" style="color:var(--teal)">${sc(r.avg_nilai_akumulasi)}</div><div style="margin-top:3px">${tierBadge(r.tier)}</div></div>
-      <div class="dp-kc"><div class="dp-kl">NPS Terakhir</div><div style="margin-top:6px">${npsBadge(r.nps_status_terakhir)}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">Avg rating: ${r.avg_session_rating||'—'}</div></div>
-      <div class="dp-kc"><div class="dp-kl">Issues</div><div class="dp-kv" style="color:${n(r.total_issues)>0?'var(--red)':'var(--green)'}">${r.total_issues||0}</div><div style="font-size:10px;color:var(--text3)">NPS: ${r.total_nps||0} · SR: ${r.total_session_rating||0} · Complaint: ${r.total_complaint||0}</div></div>
     </div>
+    <div class="dp-sec" style="margin-top:4px">Feedback &amp; NPS</div>
+    <div class="dp-kpi">
+      <div class="dp-kc"><div class="dp-kl">NPS Terakhir</div><div style="margin-top:6px">${npsBadge(r.nps_status_terakhir)}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">Avg rating: ${r.avg_session_rating||'—'}</div></div>
+      <div class="dp-kc"><div class="dp-kl">NPS Detractor</div><div class="dp-kv" style="color:${n(r.jumlah_nps_detractor)>0?'var(--red)':'var(--text3)'}">${n(r.jumlah_nps_detractor)}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_nps||0} survey NPS</div></div>
+      <div class="dp-kc"><div class="dp-kl">Rating Rendah</div><div class="dp-kv" style="color:${n(r.jumlah_rating_rendah)>0?'var(--amber)':'var(--text3)'}">${n(r.jumlah_rating_rendah)}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_session_rating||0} session rating</div></div>
+      <div class="dp-kc"><div class="dp-kl">Complaint</div><div class="dp-kv" style="color:${n(r.jumlah_complaint)>0?'var(--red)':'var(--text3)'}">${n(r.jumlah_complaint)}</div><div style="font-size:10px;color:var(--text3)">tiket masuk</div></div>
+    </div>
+    ${(r.detail_complaint||r.detail_rating_rendah)?`<div class="dp-sec" style="margin-top:4px">Detail Feedback</div>
+    ${(r.detail_complaint||'').split('|').map(s=>s.trim()).filter(Boolean).map(s=>`<div class="logbook-item" style="border-left:3px solid var(--red)">${s}</div>`).join('')}
+    ${(r.detail_rating_rendah||'').split('|').map(s=>s.trim()).filter(Boolean).map(s=>`<div class="logbook-item" style="border-left:3px solid var(--amber)">${s}</div>`).join('')}`:''}
     ${aus?`<div class="dp-sec">Nilai Ausbildung</div>${scoreRows([['Mid A1','avg_mid_a1'],['Final A1','avg_final_a1'],['Mid A2','avg_mid_a2'],['Final A2','avg_final_a2'],['Mid B1','avg_mid_b1'],['Final B1','avg_final_b1']])}`:
      tok?`<div class="dp-sec">Nilai Tokutei</div>${scoreRows([['Mid N5','avg_mid_n5'],['Final N5','avg_final_n5'],['Mid N4','avg_mid_n4'],['Final N4','avg_final_n4']])}`:
      '<div style="font-size:11px;color:var(--text3);text-align:center;padding:10px">Data nilai belum tersedia</div>'}
