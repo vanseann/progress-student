@@ -261,8 +261,12 @@ function isValidProgram(p){
   if(!p) return false;
   return /ausbildung|tokutei|white collar|blue collar/i.test(p);
 }
+// Kata kunci yang menandakan batch ini POST-program (job matching, pemantapan, dll)
+// meski mengandung "Tokutei" atau "Ausbildung" di namanya
+const POST_PROGRAM_KEYWORDS=/job matching|screening|mendan|kaiwa|pemantapan|ssw|pengolahan makanan|restoran|intervention/i;
 function isDuringProgramBatch(batchName){
   if(!batchName) return false;
+  if(POST_PROGRAM_KEYWORDS.test(batchName)) return false;
   return /ausbildung|tokutei/i.test(batchName);
 }
 
@@ -596,14 +600,37 @@ function openStudentDetail(i){
     </div>
     <div class="dp-sec" style="margin-top:4px">Feedback &amp; NPS</div>
     <div class="dp-kpi">
-      <div class="dp-kc"><div class="dp-kl">NPS Terakhir</div><div style="margin-top:6px">${npsBadge(r.nps_status_terakhir)}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">Avg rating: ${r.avg_session_rating||'—'}</div></div>
-      <div class="dp-kc"><div class="dp-kl">NPS Detractor</div><div class="dp-kv" style="color:${n(r.jumlah_nps_detractor)>0?'var(--red)':'var(--text3)'}">${n(r.jumlah_nps_detractor)}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_nps||0} survey NPS</div></div>
-      <div class="dp-kc"><div class="dp-kl">Rating Rendah</div><div class="dp-kv" style="color:${n(r.jumlah_rating_rendah)>0?'var(--amber)':'var(--text3)'}">${n(r.jumlah_rating_rendah)}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_session_rating||0} session rating</div></div>
-      <div class="dp-kc"><div class="dp-kl">Complaint</div><div class="dp-kv" style="color:${n(r.jumlah_complaint)>0?'var(--red)':'var(--text3)'}">${n(r.jumlah_complaint)}</div><div style="font-size:10px;color:var(--text3)">tiket masuk</div></div>
+      <div class="dp-kc"><div class="dp-kl">Avg Session Rating</div><div class="dp-kv">${r.avg_session_rating||'—'}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_session_rating||0} rating</div></div>
+      <div class="dp-kc"><div class="dp-kl">NPS Terakhir</div><div style="margin-top:6px">${npsBadge(r.nps_status_terakhir)}</div></div>
     </div>
-    ${(r.detail_complaint||r.detail_rating_rendah)?`<div class="dp-sec" style="margin-top:4px">Detail Feedback</div>
-    ${(r.detail_complaint||'').split('|').map(s=>s.trim()).filter(Boolean).map(s=>`<div class="logbook-item" style="border-left:3px solid var(--red)">${s}</div>`).join('')}
-    ${(r.detail_rating_rendah||'').split('|').map(s=>s.trim()).filter(Boolean).map(s=>`<div class="logbook-item" style="border-left:3px solid var(--amber)">${s}</div>`).join('')}`:''}
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div class="fb-toggle" onclick="toggleFb(this)" style="cursor:pointer;background:var(--surface2);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:500">NPS — riwayat lengkap</span>
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${r.total_nps||0} survey ▾</span>
+      </div>
+      <div class="fb-content" style="display:none;padding-left:4px">
+        ${parseDetailList(r.detail_nps_history).length?parseDetailList(r.detail_nps_history).map(d=>`<div class="logbook-item" style="border-left:3px solid ${d.content.startsWith('Detractor')?'var(--red)':d.content.startsWith('Passive')?'var(--amber)':'var(--green)'}"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d.date}</div>${d.content}</div>`).join(''):
+        '<div style="font-size:11px;color:var(--text3);padding:6px">Belum ada survey NPS</div>'}
+      </div>
+
+      <div class="fb-toggle" onclick="toggleFb(this)" style="cursor:pointer;background:var(--surface2);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:500">Session Rating Rendah <span style="color:var(--text3)">(≤2 dari 5)</span></span>
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:${n(r.jumlah_rating_rendah)>0?'var(--amber)':'var(--text3)'}">${n(r.jumlah_rating_rendah)} ▾</span>
+      </div>
+      <div class="fb-content" style="display:none;padding-left:4px">
+        ${parseDetailList(r.detail_rating_rendah).length?parseDetailList(r.detail_rating_rendah).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--amber)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d.date}</div>${d.content}</div>`).join(''):
+        '<div style="font-size:11px;color:var(--text3);padding:6px">Tidak ada rating rendah</div>'}
+      </div>
+
+      <div class="fb-toggle" onclick="toggleFb(this)" style="cursor:pointer;background:var(--surface2);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:500">Complaint</span>
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:${n(r.jumlah_complaint)>0?'var(--red)':'var(--text3)'}">${n(r.jumlah_complaint)} ▾</span>
+      </div>
+      <div class="fb-content" style="display:none;padding-left:4px">
+        ${parseDetailList(r.detail_complaint).length?parseDetailList(r.detail_complaint).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--red)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d.date}</div>${d.content}</div>`).join(''):
+        '<div style="font-size:11px;color:var(--text3);padding:6px">Tidak ada complaint</div>'}
+      </div>
+    </div>
     ${aus?`<div class="dp-sec">Nilai Ausbildung</div>${scoreRows([['Mid A1','avg_mid_a1'],['Final A1','avg_final_a1'],['Mid A2','avg_mid_a2'],['Final A2','avg_final_a2'],['Mid B1','avg_mid_b1'],['Final B1','avg_final_b1']])}`:
      tok?`<div class="dp-sec">Nilai Tokutei</div>${scoreRows([['Mid N5','avg_mid_n5'],['Final N5','avg_final_n5'],['Mid N4','avg_mid_n4'],['Final N4','avg_final_n4']])}`:
      '<div style="font-size:11px;color:var(--text3);text-align:center;padding:10px">Data nilai belum tersedia</div>'}
@@ -613,6 +640,22 @@ function openStudentDetail(i){
   document.getElementById('detailOverlay').style.display='flex';
 }
 
+// Parse format "tanggal||isi ~~~ tanggal||isi ~~~ ..." dari query BQ jadi array {date, content}
+function parseDetailList(raw){
+  if(!raw) return [];
+  return raw.split('~~~').map(s=>s.trim()).filter(Boolean).map(s=>{
+    const idx=s.indexOf('||');
+    if(idx===-1) return {date:'',content:s};
+    return {date:s.substring(0,idx),content:s.substring(idx+2)};
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function toggleFb(el){
+  const content=el.nextElementSibling;
+  const arrow=el.querySelector('span:last-child');
+  const isOpen=content.style.display==='block';
+  content.style.display=isOpen?'none':'block';
+  if(arrow) arrow.textContent=arrow.textContent.replace(isOpen?'▴':'▾',isOpen?'▾':'▴');
+}
 function closeDetail(){document.getElementById('detailOverlay').style.display='none';}
 </script>
 </body>
