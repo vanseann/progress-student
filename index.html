@@ -196,20 +196,37 @@ async function loadSheet(key){
 }
 
 function parseCSV(text){
-  const lines=text.trim().split('\n');
-  if(lines.length<2) return [];
-  const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'));
-  return lines.slice(1).map(line=>{
-    const vals=[];let cur='',inQ=false;
-    for(const ch of line){
-      if(ch==='"'){inQ=!inQ;}
-      else if(ch===','&&!inQ){vals.push(cur);cur='';}
-      else cur+=ch;
+  // Parser proper: scan karakter demi karakter, bukan split per baris dulu.
+  // Ini penting karena field seperti kualitatif_feedback/list_sesi bisa
+  // mengandung newline atau koma literal di dalam tanda kutip.
+  const rows=[];
+  let row=[],cur='',inQ=false;
+  let i=0;
+  const len=text.length;
+  while(i<len){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){cur+='"';i+=2;continue;} // escaped quote ""
+        inQ=false;i++;continue;
+      }
+      cur+=ch;i++;continue;
+    } else {
+      if(ch==='"'){inQ=true;i++;continue;}
+      if(ch===','){row.push(cur);cur='';i++;continue;}
+      if(ch==='\r'){i++;continue;}
+      if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur='';i++;continue;}
+      cur+=ch;i++;continue;
     }
-    vals.push(cur);
+  }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  if(rows.length<2) return [];
+
+  const headers=rows[0].map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  return rows.slice(1).filter(r=>r.length>1||r[0]!=='').map(vals=>{
     const obj={};
-    headers.forEach((h,i)=>{
-      let v=(vals[i]||'').replace(/^"|"$/g,'').trim();
+    headers.forEach((h,idx)=>{
+      let v=(vals[idx]!==undefined?vals[idx]:'').trim();
       if(v===''||v==='NaN'||v==='null'||v==='None') v=null;
       obj[h]=v;
     });
