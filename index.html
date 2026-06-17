@@ -10,19 +10,20 @@
   --bg:#F4F2EE;--surface:#FFF;--surface2:#EDEBE6;
   --border:rgba(0,0,0,0.08);--border-md:rgba(0,0,0,0.14);
   --text:#1C1B18;--text2:#6B6960;--text3:#A8A59C;
-  --purple:#5B4FD9;--purple-bg:#EEEDFB;--purple-dk:#3D33B0;
-  --teal:#0D7A60;--teal-bg:#E0F4EE;--teal-dk:#075441;
+  --purple:#34469C;--purple-bg:#E8EAF6;--purple-dk:#222F6B;
+  --teal:#0D8A85;--teal-bg:#DFF5F3;--teal-dk:#0A6864;
   --amber:#8A5200;--amber-bg:#FEF3DC;--amber-dk:#5C3500;
   --red:#B02828;--red-bg:#FCEAEA;--red-dk:#7A1A1A;
   --green:#2E6B12;--green-bg:#EAF5E1;--green-dk:#1E4A0C;
   --blue:#1A5FA8;--blue-bg:#E5F0FB;--blue-dk:#0D3E73;
   --gray-bg:#EEECEA;--gray-dk:#4A4840;
+  --wa-teal:#55C3C0;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
 .topbar{background:var(--surface);border-bottom:0.5px solid var(--border-md);display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:50;height:52px;}
 .logo{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
-.logo-icon{width:26px;height:26px;background:var(--purple);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-icon{width:30px;height:30px;background:var(--purple);border-radius:8px;display:flex;align-items:center;justify-content:center;padding:4px;}
 .logo-icon svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
 .logo-sub{font-size:11px;color:var(--text3);}
 .tab-nav{display:flex;gap:2px;margin-left:20px;}
@@ -59,7 +60,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .chart-card{background:var(--surface);border:0.5px solid var(--border-md);border-radius:12px;padding:14px;}
 .chart-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
 .bar-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-.bar-lbl{font-size:10px;color:var(--text2);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-lbl{font-size:10px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-bg{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:3px;transition:width .5s;}
 .bar-val{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);min-width:28px;text-align:right;}
@@ -115,7 +116,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <body>
 <header class="topbar">
   <div class="logo">
-    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <div class="logo-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE0AAAB4CAIAAAA43Oj5AAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAANYElEQVR4nO2ce4xVx33Hf7+Zc859P9nL7rLLssa8HzFgHAw22LJsKyJOmzqNUpxEUSK7UupUjZLW7iN9yVWq2pGVNo6jtImcyG7ltKRNShIrBhsXFLDBYDDYwC6LMQv7vHvfr/OY+fWPheWec+/dXRDLHt3sV/efnTszdz53fvP7/WbunMWND/4AfgvEZnsAN0lznM2lOc7m0hxnc2mOs7k0x9lcmuNsLs1xNpfmOJtLymwP4MaLBAEBAAACIgAiYPNxMojcESNJVtYURSGL0iqZZFFzcRKghrF74kpUIZOkIaUhrTFreOdAU3GSJDXoAY7SkECAKipeRVYEWdRcfohAiXCmsok/AcDKCVGRTcZJSkxFDS/7IQAAEBmLzCbjZKi1aI4yfVRHd/pbSUQSEIExvIZmBMhRa/OApOpCY1QHQHdxmpZEoFBQC/q1im5lcroQpKocp8NLhAGuRtWrRosgSlJkLBfFTyKyhLx9besnt69Yu7LV71MMQ567kPrFr3v3HjgvBHI+BSsReFs8PMCJLoMiQytnWDkLmTvmk4iI4LHPrXv0kQ0ez9UhdS4Ib7uz+xe7zzz93MFCyeRsUm9CoLZrzMOkKS+XIJijhqwInKLlzZJpyR0Pr3r8ix+thpzQQw8sf/IrmzkCUe2bVULwdfnIXqnSXwZCcEMeb1lycVf00UfWT1Jn+/3Ltm3pMi3RqAJJ4EHuaffClbkEBGmSPlABBHADpyS6d0tXNOKbpA4ifvz+pZxjwymVUmvzKBGVJpwtQ5ExjVEDmTvmkyGuWTl/ymrLFrcEfApBA1AC/2I/q7J6RNAv6bJkuWU+ASngdwb3Wqkq01SlPiYB+rjv1oBjtkt9RbiS2M4+JxGMJAtTVssX9FLZxHqRlCR52j3afM1mtAVR6a9M8M0+pyQ4dHRgymqHjw2UK1bdhIEIgquC1WktIuiXylbq8uIEN3CqnO1/q//M2dFJ6uQLlZ+/0tNgMkEJK/7lQah2xgjF00Uprtrx7HMyhtmc/vRzB1KZUt0KlpD/8oNDp86OKUq90QryLwuo8aueFhlaWat0toRV6fHscwKAqvK3jw99/W92v/v+sOOt/oHM3z3zxs5dZ1SF12lJgF4Mb4jYCjmU+0pW2qzmdEXeBwCaprxzcviPnvzVpg0d69e2tsT9haLx3pnkgcMXh0aKjVJ5smRgVciz0EsTJopABhWO5xye2S2cAKCqvKyL3fvO79l/niESkJSkcK5p9WYSxieTRTfHsGpfjRzLF0rlC2W05/0u4gQAhuhpRFUjsmT49pi3y0dV/gYk5I5kSZeo2pakK9ZnQzVO3EmQ2qLFtsarq6CClUuV0qkC1ngsF3MSAG+ASgQc4w8klLgC9snMHEiLsoSaxexeTikocmcsdEfk6n5yXAQkKLotHlwTrLZYVFipt1g6VWD1ws9NWp8kiAiYMu3zHgIe4KH1ETWmkClzR3KIgAxJEgFE747H74mTrMrqGYqSSO1NkkVY7+RhxjmJiAT5uv2edm/2UBrqJjW1rYQMLA9pCZUIEp9oVed7cm+mRUEoUTV6Vyy8MTre9UR9ZJDZn9L7dWzwVc4sp7SI+1nkzlh0SwwYlj8sGYM6TOOkBzWMbIwAAEgCBrG7Y6E1ITNjqHGNhxUQtv0Zqlg4kc8eTNedyXHNLGdgZSB+b4u30yulRIbRzbGR/x6ashVZMrA67F14JWAQkEU8rChRhSSBZXNNqDL9Qjn5yxEShI3PQWfKD5FFgZXB9h0dnk5NWhIkkKDAmpBvSYCsyc55SAIP8NhdcafPlEQWgd0loYr6xcrQzkGRF5NAwgz6WwaVgYqVtWhiZASoYfy+eehjJBuikpDhj0Y9nR5b9K/XPypY6i0NvjxgJY1JLPZK9ZkRMjSTZuZQ2vY1W+Tt8sa3xUnWb0UWeRf5onfFHF8EMgSE8RdyRJXJskzvHRt+eUCkzdqsoFYzuD4Zx/yRXGhN2NPpmbBVEhDZHNNHjPzRLLOnZiSIh3lieyv3cdtkEphjJvNzYIQSjaxR6isWjuWMIR0Zm3ImxzWTfoiBLInU3mTbjgWAVzIbIuDYsn2+rMji+wWm4Pg6JItYABO/0+bp8pBZFTBUVng3N/LzISWgMA+XurDyFukSEKczjVVjmUmhgqWeYu7trC2sSeJeNv/htsimCCBIU0pTqgm19dMdgZUBGyRDK22mXktSmcyUqQ9UzJQJFiCf7jROaMbzBARMvz7m6fB6F3qvWq8k5sXEQ62BVaHS2aISUoJrQkpUsbliBCIY2zNqjBgOC78OzXzex0AUxej/Di/4bCePVC08CQTkX+r3L/UDAI2HjSohZ5n9qcKxXN189dpHMfNCBfWByvDPBkVROOyNLBp/1QRGlnsnm3ptFBFrNx/XoZu0X2EKK/eWhncOmlkL1UkHzhA5yx7OJHeNgAC4EpaEkLpu6YYwTVGpWIYhZOMgXKubd56ACpZ7SoMvXUpsT/gWB4DItuEAAAbImSyK1L6xzME0EI7HXinJErIt4b9j/YIl3XGfV01nS++fSR47OZTJG5rKp7M1uKnnJqiiOaQPvTQQXB8O3x7REhpqV7bSkkRBlM4WMgdTxqUKcjZurkJITWWf//Taz/zumvbW0ERXRNR7buw//ufEr/b0maasf+RZ/dE3/zk6IgBBzMc8HV4t4WEBDpY0M6Z+STfHDCBCfnnQQsigX/3G1+5+8N4ljXp7bV/fM8+/OThS1FQGjZfyLHBeFo1fxCOYsDoG1UmiJFAY/P0T2z5239LJezrdO/qX33y978OspjY8Q5u9cxMEVBBVhgpeftk3HJZpfe73V08JCQArliae+dsHblkYMc2GPwS79HzINMWqZS1f+IN106x/a3f8qT+/d17MZzXY9LmRkwgYhy8+cls46HW8tfc35/7xn/cfPnaxttXala1/9vhmRal/jcGNnKYlb1vVes/mbkf5nv/re/KpvS/99L0//otff//Ft4Vw7u4+dt+SHZ9cbRhWbZ9u5ESghz++wqPZYt7gcP7Z779lmNLvUw1LPv/C0ed+eIikE/Wxz2+4bXXCMJ3lruMUQnZ1hLZu6nKUv/yzk/0DeVVhAMAZUzj70U/e/fefnnBUCwU9f/LYJr9XkXbzdR2naYmtdzqvnwyO5F7Zc1atSgYYQ0T23ReOHDx8wdHDxnUdn3pomWH3ve7iJAKfV7ln8yJH+ev7zg8lS5zbRss5lirWM989WHu94QufWXfLwohlXbVed3EKITvbQ6tX2K7ZmKbYs/8DxDpD1VTe80H6ey8cdvjYxLzAo59dxzlePa+foRFfn4SQGz7S7rhm03c+faYvpdQ7QCACRWEL2sO1b23a0Dkv5pvY07iIkwA4Zxtva3eUv3m0P18w6t7F1Q3rEw8u+dKO9Y4di2mJ5354aCRZ5O65bzIhKWUk5Fm1vKW6kIgOvzPQAFJs/Ejrn355i2PdAsCPf3J816tnOb+a7rqJU8CiztCCNtulipGxYs+5lFJDYlqyoy3wja9tjYSdOdPufX3/9uJRzln1JLuIUwi5annCgXSmN5nOVBw7aSHJ7+V/9dW7bu2e5+jkVM/o0985YFjkMAG3cBIB57j8Vue43+8Z1XVRjUkEJOXjX9p496ZuR+VkqvjUs/uGk+Xa+XcNJ5Dfpyxb4uQ8eXqU2QetG9anHlqx4/fWOmoapvVP3/nNydPJujc5XMMpIRb1ddojRDavn+/PVlugbojNt3d89Q831Xqmf33xyKtvnK97Ixvcwymk7OoMB/xqdeHFgWw6W5nwJ0LQ0u7YX399azDgcTT/5e6eH718Qm18nO0WTilkd2ekOhIAwIWL2erIKYTcfv/ihQsijrbH3xv61vNvSjnZnQC3cDLOblkUdRT2fpCqTuhUlf/4P0+8tPN49WX/oZH8U8/uS2Urkz/44QpOItBUvqgz6ig/dz5dvQ4RoVCyvvW9t/7h2X25gg4ApbL5zW/v7+lLT3ICNi5X3HsjIp9X6WizOSHdEAPDBWY3Rc6QIf+vXaf7B3JPfGXLrld73jjY38j3VMsVnJKoJe6LhG3eJTlWSGcrtbcOEMHjUQ69M/jlJ17JFQxNnRaCOzgltc0P+n22wYyOlbI5nTVwLarKU5kK4vSuI7lkfUpJrfODDmc7NFKo6PUvxI+LselCgks4GWJ7IuAovDg49UMQ1/ARN7Cv6xZj2N4adBReGsxN8nvJNX/EjeroukUEvB7n4FBu+mY5pVzACaRpbH7CxlkqG6mcfg3rbyq5gFNCNOINBGxnQrm8ns/XPyu5Ps0+pySKhr1+ry2DzxeMXF6/cZgu4CSiaNjj9dqCZzZfafQ02fXJBZySIhGPIx8YS5XlFI/vXptmnxMAE3HbrwyGKT68mB1/3vhGafbzPmQYjXiTqdKpnpHec+lzF9IffJi5cCmnTrUFubZPmfX/Z0wEbQm/rpvpvKHrFgIyzhQ+7cx1enLBfCIMjBQRABG9HnXqBtel2ecEAH4DA0gDucEP3QzNcTaX5jibS3OczaU5zubSHGdzaY6zuTTH2Vya42wu/bZwKjfwbN/N+n/fnOlDts7/yAAAAABJRU5ErkJggg==" alt="Work Abroad" style="width:100%;height:100%;object-fit:contain"></div>
     WAA Student Journey
     <span class="logo-sub">Work Abroad Academy</span>
   </div>
@@ -248,6 +249,12 @@ function renderTab(){
 }
 
 function n(v,def=0){const x=parseFloat(v);return isNaN(x)?def:x;}
+// Partial, case-insensitive match — supports exact selection from datalist or partial typing
+function matchFilter(value,filterText){
+  if(!filterText) return true;
+  if(!value) return false;
+  return value.toLowerCase().includes(filterText.toLowerCase());
+}
 function sc(v){return n(v)>0?n(v).toFixed(1):'—';}
 function avg(arr,key){const vs=arr.map(r=>n(r[key])).filter(v=>v>0);return vs.length?vs.reduce((a,b)=>a+b,0)/vs.length:0;}
 function displayName(r){return r.student_name||r.searching_id||'—';}
@@ -304,33 +311,24 @@ function buildFilters(opts,fkey){
   let html='';
   if(opts.search!==false) html+=`<div><div class="f-label">Cari</div><input class="f-input" value="${f.search||''}" placeholder="Ketik untuk cari..." oninput="filters['${fkey}'].search=this.value;renderTab()"></div>`;
   if(opts.program){
-    const progs=[...new Set(DATA[fkey].map(r=>r.program).filter(p=>p&&isValidProgram(p)))].sort();
-    html+=`<div><div class="f-label">Program</div><select class="f-input" onchange="filters['${fkey}'].program=this.value;renderTab()">
-      <option value="">Semua program</option>${progs.map(p=>`<option value="${p}"${f.program===p?' selected':''}>${p}</option>`).join('')}
-    </select></div>`;
+    const progs=[...new Set(DATA[fkey].map(r=>r.program).filter(p=>p&&isValidProgram(p)))].sort((a,b)=>a.localeCompare(b));
+    html+=searchableSelect('Program',fkey,'program',progs,f.program,'Semua program');
   }
   if(opts.regional){
-    const regs=[...new Set(DATA[fkey].map(r=>r.regional).filter(Boolean))].sort();
-    html+=`<div><div class="f-label">Regional</div><select class="f-input" onchange="filters['${fkey}'].regional=this.value;renderTab()">
-      <option value="">Semua regional</option>${regs.map(p=>`<option value="${p}"${f.regional===p?' selected':''}>${p}</option>`).join('')}
-    </select></div>`;
+    const regs=[...new Set(DATA[fkey].map(r=>r.regional).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    html+=searchableSelect('Regional',fkey,'regional',regs,f.regional,'Semua regional');
   }
   if(opts.batch){
-    const batches=[...new Set(DATA[fkey].map(r=>r.batch).filter(b=>b&&isDuringProgramBatch(b)))].sort();
-    html+=`<div><div class="f-label">Batch</div><select class="f-input" onchange="filters['${fkey}'].batch=this.value;renderTab()">
-      <option value="">Semua batch</option>${batches.map(p=>`<option value="${p}"${f.batch===p?' selected':''}>${p}</option>`).join('')}
-    </select></div>`;
+    const batches=[...new Set(DATA[fkey].map(r=>r.batch).filter(b=>b&&isDuringProgramBatch(b)))].sort((a,b)=>a.localeCompare(b));
+    html+=searchableSelect('Batch',fkey,'batch',batches,f.batch,'Semua batch');
   }
   if(opts.event){
-    // Extract unique events dari list_sesi (pipe-separated), hanya dari batch during-program
     const events=new Set();
     DATA.student.forEach(r=>{
       if(r.list_sesi&&isDuringProgramBatch(r.batch))(r.list_sesi||'').split('|').forEach(s=>{const t=s.trim();if(t)events.add(t);});
     });
-    const evList=[...events].sort();
-    html+=`<div><div class="f-label">Event / Logbook</div><select class="f-input" onchange="filters['${fkey}'].event=this.value;renderTab()">
-      <option value="">Semua event</option>${evList.map(e=>`<option value="${e}"${f.event===e?' selected':''}>${e}</option>`).join('')}
-    </select></div>`;
+    const evList=[...events].sort((a,b)=>a.localeCompare(b));
+    html+=searchableSelect('Event / Logbook',fkey,'event',evList,f.event,'Semua event');
   }
   if(opts.tier){
     const tiers=['1 - Excellent','2 - Good','3 - Need Improvement','4 - At-Risk','5 - Critical'];
@@ -349,14 +347,30 @@ function buildFilters(opts,fkey){
   return html;
 }
 
+// Searchable combobox: input + datalist, native browser autocomplete dengan search-as-you-type
+function searchableSelect(label,fkey,field,options,current,placeholder){
+  const listId=`dl-${fkey}-${field}`;
+  const datalistOpts=options.map(o=>`<option value="${o.replace(/"/g,'&quot;')}">`).join('');
+  return `<div>
+    <div class="f-label">${label}</div>
+    <input class="f-input" list="${listId}" value="${current||''}" placeholder="${placeholder}"
+      oninput="applySearchableFilter('${fkey}','${field}',this.value)"
+      onchange="applySearchableFilter('${fkey}','${field}',this.value)">
+    <datalist id="${listId}">${datalistOpts}</datalist>
+  </div>`;
+}
+function applySearchableFilter(fkey,field,value){
+  filters[fkey][field]=value||'';
+  renderTab();
+}
+
 // ── REGIONAL ──────────────────────────────────────────────────────────────────
 function renderRegional(){
   const f=filters.regional;
   const data=DATA.regional.filter(r=>{
-    if(!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(r.regional||'').toLowerCase().includes(f.search.toLowerCase())) return false;
-    if(f.program&&r.program!==f.program) return false;
-    if(f.regional&&r.regional!==f.regional) return false;
+    if(f.program&&!matchFilter(r.program,f.program)) return false;
+    if(f.regional&&!matchFilter(r.regional,f.regional)) return false;
     if(f.tier&&(r.tier_regional||r.tier)!==f.tier) return false;
     return true;
   });
@@ -367,13 +381,18 @@ function renderRegional(){
   const totBt=data.reduce((s,r)=>s+n(r.total_batch),0);
   const avgH=avg(data,'avg_kehadiran');
   const avgN=avg(data,'avg_nilai_akumulasi');
+  const avgNAusR=avg(data.filter(r=>/ausbildung/i.test(r.program||'')),'avg_nilai_ausbildung');
+  const avgNTokR=avg(data.filter(r=>/tokutei/i.test(r.program||'')),'avg_nilai_tokutei');
   const totJO=data.reduce((s,r)=>s+n(r.total_dapat_jo),0);
 
   const kpi=`<div class="kpi-row">
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${totSt.toLocaleString('id')}</div><div class="kpi-s">${data.length} regional aktif</div></div>
     <div class="kpi"><div class="kpi-l">Total Batch</div><div class="kpi-v">${totBt.toLocaleString('id')}</div><div class="kpi-s">Batch berjalan</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Semua regional</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
-    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div class="kpi-s">Akumulasi mid & final</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div style="display:flex;gap:10px;margin-top:4px">
+      <div style="font-size:10px;color:var(--text3)">Aus: <b style="color:var(--text2)">${avgNAusR>0?avgNAusR.toFixed(1):'—'}</b></div>
+      <div style="font-size:10px;color:var(--text3)">Tok: <b style="color:var(--text2)">${avgNTokR>0?avgNTokR.toFixed(1):'—'}</b></div>
+    </div></div>
     <div class="kpi"><div class="kpi-l">Dapat JO</div><div class="kpi-v">${totJO.toLocaleString('id')}</div><div class="kpi-s">${totSt>0?(totJO/totSt*100).toFixed(1)+'%':''} dari total</div></div>
   </div>`;
 
@@ -404,10 +423,9 @@ function renderRegional(){
 function renderBatch(){
   const f=filters.batch;
   const data=DATA.batch.filter(r=>{
-    if(!isDuringProgramBatch(r.batch)&&!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(r.batch||'').toLowerCase().includes(f.search.toLowerCase())) return false;
-    if(f.program&&r.program!==f.program) return false;
-    if(f.regional&&r.regional!==f.regional) return false;
+    if(f.program&&!matchFilter(r.program,f.program)) return false;
+    if(f.regional&&!matchFilter(r.regional,f.regional)) return false;
     if(f.tier&&(r.tier||'')!==f.tier) return false;
     return true;
   });
@@ -422,12 +440,17 @@ function renderBatch(){
   const jumlahDetractorB=data.reduce((s,r)=>s+n(r.jumlah_nps_detractor),0);
   const jumlahRatingRendahB=data.reduce((s,r)=>s+n(r.jumlah_rating_rendah),0);
   const jumlahComplaintB=data.reduce((s,r)=>s+n(r.jumlah_complaint),0);
+  const avgNAusB=avg(data.filter(r=>/ausbildung/i.test(r.program||'')),'avg_nilai_ausbildung');
+  const avgNTokB=avg(data.filter(r=>/tokutei/i.test(r.program||'')),'avg_nilai_tokutei');
 
   const kpi=`<div class="kpi-row">
     <div class="kpi"><div class="kpi-l">Total Batch</div><div class="kpi-v">${data.length}</div><div class="kpi-s">Dalam filter aktif</div></div>
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${totSt.toLocaleString('id')}</div><div class="kpi-s">Semua batch terpilih</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata antar batch</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
-    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div class="kpi-s">Akumulasi mid & final</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div style="display:flex;gap:10px;margin-top:4px">
+      <div style="font-size:10px;color:var(--text3)">Aus: <b style="color:var(--text2)">${avgNAusB>0?avgNAusB.toFixed(1):'—'}</b></div>
+      <div style="font-size:10px;color:var(--text3)">Tok: <b style="color:var(--text2)">${avgNTokB>0?avgNTokB.toFixed(1):'—'}</b></div>
+    </div></div>
     <div class="kpi"><div class="kpi-l">Feedback Perlu Perhatian</div><div style="display:flex;gap:10px;margin-top:2px">
       <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahDetractorB}</div><div style="font-size:9px;color:var(--text3)">Detractor</div></div>
       <div><div class="kpi-v" style="font-size:18px;color:var(--amber)">${jumlahRatingRendahB}</div><div style="font-size:9px;color:var(--text3)">Rating Rendah</div></div>
@@ -435,9 +458,11 @@ function renderBatch(){
     </div></div>
   </div>`;
 
+  const chartData=data.filter(r=>isDuringProgramBatch(r.batch)); // sembunyikan post-program dari chart/tabel visual
+
   const charts=`<div class="charts-row">
-    <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart([...data].sort((a,b)=>n(b.total_student)-n(a.total_student)).slice(0,5).map(r=>({l:(r.batch||'').substring(0,22),v:n(r.total_student)})))}</div>
-    <div class="chart-card"><div class="chart-title">Avg Kehadiran (Top 6)</div>${barChart([...data].sort((a,b)=>n(b.avg_kehadiran)-n(a.avg_kehadiran)).slice(0,6).map(r=>({l:(r.batch||'').substring(0,22),v:n(r.avg_kehadiran)})),'var(--teal)')}</div>
+    <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart([...chartData].sort((a,b)=>n(b.total_student)-n(a.total_student)).slice(0,5).map(r=>({l:(r.batch||''),v:n(r.total_student)})))}</div>
+    <div class="chart-card"><div class="chart-title">Avg Kehadiran (Top 6)</div>${barChart([...chartData].sort((a,b)=>n(b.avg_kehadiran)-n(a.avg_kehadiran)).slice(0,6).map(r=>({l:(r.batch||''),v:n(r.avg_kehadiran)})),'var(--teal)')}</div>
     <div class="chart-card"><div class="chart-title">Distribusi Tier</div>${barChart([
       {l:'Excellent',v:data.reduce((s,r)=>s+n(r.tier_1_excellent),0)},
       {l:'Good',v:data.reduce((s,r)=>s+n(r.tier_2_good),0)},
@@ -501,10 +526,9 @@ function openBatchDetail(i){
 function renderStudent(){
   const f=filters.student;
   const data=DATA.student.filter(r=>{
-    if(!isDuringProgramBatch(r.batch)&&!isValidProgram(r.program)) return false; // safety net: exclude post-program
     if(f.search&&!(displayName(r)).toLowerCase().includes(f.search.toLowerCase())) return false;
-    if(f.program&&r.program!==f.program) return false;
-    if(f.batch&&r.batch!==f.batch) return false;
+    if(f.program&&!matchFilter(r.program,f.program)) return false;
+    if(f.batch&&!matchFilter(r.batch,f.batch)) return false;
     if(f.tier&&r.tier!==f.tier) return false;
     if(f.jo&&r.jo_flag!==f.jo) return false;
     if(f.event&&!(r.list_sesi||'').includes(f.event)) return false;
@@ -524,6 +548,8 @@ function renderStudent(){
 
   const avgH=avg(data,'pct_kehadiran');
   const avgN=avg(data,'avg_nilai_akumulasi');
+  const avgNAus=avg(data.filter(r=>/ausbildung/i.test(r.program||'')),'avg_nilai_akumulasi_ausbildung');
+  const avgNTok=avg(data.filter(r=>/tokutei/i.test(r.program||'')),'avg_nilai_akumulasi_tokutei');
   const totJO=data.filter(r=>r.jo_flag==='Dapat JO').length;
   const totIss=data.reduce((s,r)=>s+issuesCount(r),0);
 
@@ -534,7 +560,10 @@ function renderStudent(){
   const kpi=`<div class="kpi-row">
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${data.length.toLocaleString('id')}</div><div class="kpi-s">Dalam filter aktif</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata semua student</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
-    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div class="kpi-s">Akumulasi mid & final</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div style="display:flex;gap:10px;margin-top:4px">
+      <div style="font-size:10px;color:var(--text3)">Aus: <b style="color:var(--text2)">${avgNAus>0?avgNAus.toFixed(1):'—'}</b></div>
+      <div style="font-size:10px;color:var(--text3)">Tok: <b style="color:var(--text2)">${avgNTok>0?avgNTok.toFixed(1):'—'}</b></div>
+    </div></div>
     <div class="kpi"><div class="kpi-l">Job Offer</div><div class="kpi-v">${totJO}</div><div class="kpi-s">${data.length>0?(totJO/data.length*100).toFixed(1)+'%':''} dari total</div></div>
     <div class="kpi"><div class="kpi-l">Feedback Perlu Perhatian</div><div style="display:flex;gap:10px;margin-top:2px">
       <div><div class="kpi-v" style="font-size:18px;color:var(--red)">${jumlahDetractor}</div><div style="font-size:9px;color:var(--text3)">Detractor</div></div>
@@ -543,15 +572,18 @@ function renderStudent(){
     </div></div>
   </div>`;
 
+  const chartDataS=data.filter(r=>isDuringProgramBatch(r.batch)); // sembunyikan post-program dari chart visual
+
   const charts=`<div class="charts-row">
     <div class="chart-card"><div class="chart-title">Distribusi Tier</div>${barChart(['1 - Excellent','2 - Good','3 - Need Improvement','4 - At-Risk','5 - Critical'].map(t=>({l:t.replace(/^\d - /,''),v:data.filter(r=>r.tier===t).length})),'var(--blue)')}</div>
-    <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart(Object.entries(data.reduce((acc,r)=>{acc[r.batch||'?']=(acc[r.batch||'?']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,v])=>({l:l.substring(0,20),v})))}</div>
-    <div class="chart-card"><div class="chart-title">NPS Terakhir</div>${barChart([
-      {l:'Promoter',v:data.filter(r=>r.nps_status_terakhir==='Promoter').length},
-      {l:'Passive',v:data.filter(r=>r.nps_status_terakhir==='Passive').length},
-      {l:'Detractor',v:data.filter(r=>r.nps_status_terakhir==='Detractor').length},
-      {l:'Belum NPS',v:data.filter(r=>!r.nps_status_terakhir).length},
-    ],['var(--green)','var(--amber)','var(--red)','var(--gray-dk)'])}</div>
+    <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart(Object.entries(chartDataS.reduce((acc,r)=>{acc[r.batch||'?']=(acc[r.batch||'?']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,v])=>({l:l,v})))}</div>
+    <div class="chart-card"><div class="chart-title">NPS Submission <span style="color:var(--text3);font-weight:400">(seluruh form, bukan terakhir saja)</span></div>${barChart([
+      {l:'Promoter',v:data.reduce((s,r)=>s+n(r.jumlah_nps_promoter),0)},
+      {l:'Passive',v:data.reduce((s,r)=>s+n(r.jumlah_nps_passive),0)},
+      {l:'Detractor',v:data.reduce((s,r)=>s+n(r.jumlah_nps_detractor),0)},
+    ],['var(--green)','var(--amber)','var(--red)'])}
+    <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);font-size:10px;color:var(--text3)">${data.filter(r=>n(r.total_nps)===0).length.toLocaleString('id')} dari ${data.length.toLocaleString('id')} student belum pernah mengisi survey NPS</div>
+    </div>
   </div>`;
 
   // Display semua data (limit 2000 untuk performa)
@@ -619,6 +651,7 @@ function openStudentDetail(i){
       </div>
       <div class="fb-content" style="display:none;padding-left:4px">
         ${parseDetailList(r.detail_rating_rendah).length?parseDetailList(r.detail_rating_rendah).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--amber)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d.date}</div>${d.content}</div>`).join(''):
+        n(r.jumlah_rating_rendah)>0?`<div style="font-size:11px;color:var(--text3);padding:6px">${n(r.jumlah_rating_rendah)} rating rendah tercatat, namun tidak ada catatan teks</div>`:
         '<div style="font-size:11px;color:var(--text3);padding:6px">Tidak ada rating rendah</div>'}
       </div>
 
@@ -628,6 +661,7 @@ function openStudentDetail(i){
       </div>
       <div class="fb-content" style="display:none;padding-left:4px">
         ${parseDetailList(r.detail_complaint).length?parseDetailList(r.detail_complaint).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--red)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d.date}</div>${d.content}</div>`).join(''):
+        n(r.jumlah_complaint)>0?`<div style="font-size:11px;color:var(--text3);padding:6px">${n(r.jumlah_complaint)} complaint tercatat, namun tidak ada catatan teks (kualitatif_feedback kosong di source)</div>`:
         '<div style="font-size:11px;color:var(--text3);padding:6px">Tidak ada complaint</div>'}
       </div>
     </div>
@@ -643,11 +677,20 @@ function openStudentDetail(i){
 // Parse format "tanggal||isi ~~~ tanggal||isi ~~~ ..." dari query BQ jadi array {date, content}
 function parseDetailList(raw){
   if(!raw) return [];
-  return raw.split('~~~').map(s=>s.trim()).filter(Boolean).map(s=>{
+  const items=raw.split('~~~').map(s=>s.trim()).filter(Boolean).map(s=>{
     const idx=s.indexOf('||');
     if(idx===-1) return {date:'',content:s};
     return {date:s.substring(0,idx),content:s.substring(idx+2)};
-  }).sort((a,b)=>b.date.localeCompare(a.date));
+  });
+  // Safety net: dedup berdasarkan date+content gabungan, jaga-jaga ada duplikat lolos dari query
+  const seen=new Set();
+  const deduped=items.filter(it=>{
+    const key=it.date+'||'+it.content;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return deduped.sort((a,b)=>b.date.localeCompare(a.date));
 }
 function toggleFb(el){
   const content=el.nextElementSibling;
