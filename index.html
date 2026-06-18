@@ -462,7 +462,7 @@ function renderBatch(){
   const avgNTokB=avg(data.filter(r=>/tokutei/i.test(r.program||'')),'avg_nilai_tokutei');
 
   const kpi=`<div class="kpi-row">
-    <div class="kpi"><div class="kpi-l">Total Batch</div><div class="kpi-v">${data.length}</div><div class="kpi-s">Dalam filter aktif</div></div>
+    <div class="kpi"><div class="kpi-l">Total Batch</div><div class="kpi-v">${data.length}</div></div>
     <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${totSt.toLocaleString('id')}</div><div class="kpi-s">Semua batch terpilih</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata antar batch</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
     <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div style="display:flex;gap:10px;margin-top:4px">
@@ -576,7 +576,7 @@ function renderStudent(){
   const jumlahComplaint=data.reduce((s,r)=>s+n(r.jumlah_complaint),0);
 
   const kpi=`<div class="kpi-row">
-    <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${data.length.toLocaleString('id')}</div><div class="kpi-s">Dalam filter aktif</div></div>
+    <div class="kpi"><div class="kpi-l">Total Student</div><div class="kpi-v">${data.length.toLocaleString('id')}</div></div>
     <div class="kpi"><div class="kpi-l">Avg Kehadiran</div><div class="kpi-v">${avgH.toFixed(1)}%</div><div class="kpi-s">Rata-rata semua student</div><div class="kpi-bar"><div class="kpi-fill" style="width:${avgH}%"></div></div></div>
     <div class="kpi"><div class="kpi-l">Avg Nilai</div><div class="kpi-v">${avgN.toFixed(1)}</div><div style="display:flex;gap:10px;margin-top:4px">
       <div style="font-size:10px;color:var(--text3)">Aus: <b style="color:var(--text2)">${avgNAus>0?avgNAus.toFixed(1):'—'}</b></div>
@@ -595,16 +595,17 @@ function renderStudent(){
   const charts=`<div class="charts-row">
     <div class="chart-card"><div class="chart-title">Distribusi Tier</div>${barChart(['1 - Excellent','2 - Good','3 - Need Improvement','4 - At-Risk','5 - Critical'].map(t=>({l:t.replace(/^\d - /,''),v:data.filter(r=>r.tier===t).length})),'var(--blue)')}</div>
     <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart(Object.entries(chartDataS.reduce((acc,r)=>{acc[r.batch||'?']=(acc[r.batch||'?']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,v])=>({l:l,v})))}</div>
-    <div class="chart-card"><div class="chart-title">NPS per Form <span style="color:var(--text3);font-weight:400">(stacked: Promoter/Passive/Detractor)</span></div>${stackedBarChart(
-      [1,2,3,4,5,6,7].map(fn=>({
+    <div class="chart-card"><div class="chart-title">NPS per Form <span style="color:var(--text3);font-weight:400">(stacked: Promoter/Passive/Detractor)</span></div>${(()=>{
+      const formData=[1,2,3,4,5,6,7].map(fn=>({
         l:'Form #'+fn,
         segments:[
           {v:data.reduce((s,r)=>s+n(r['form'+fn+'_promoter']),0),  color:'var(--green)', label:'Promoter'},
           {v:data.reduce((s,r)=>s+n(r['form'+fn+'_passive']),0),   color:'var(--amber)', label:'Passive'},
           {v:data.reduce((s,r)=>s+n(r['form'+fn+'_detractor']),0), color:'var(--red)',   label:'Detractor'},
         ]
-      })).filter(item=>item.segments.reduce((s,seg)=>s+seg.v,0)>0)
-    )}</div>
+      })).filter(item=>item.segments.reduce((s,seg)=>s+seg.v,0)>0);
+      return formData.length?stackedBarChart(formData):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Data belum tersedia — pastikan Sheets sudah di-refresh dari query terbaru (kolom form1_promoter dst)</div>';
+    })()}</div>
   </div>`;
 
   // Display semua data (limit 2000 untuk performa)
