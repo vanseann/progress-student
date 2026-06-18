@@ -303,6 +303,24 @@ function barChart(items,color='var(--purple)'){
     <span class="bar-val">${n(i.v)>0?n(i.v).toFixed(Number.isInteger(i.v)?0:1):0}</span>
   </div>`).join('');
 }
+// Stacked bar chart: tiap bar punya beberapa segmen warna (mis. Promoter+Passive+Detractor dalam 1 bar per Form)
+// items: [{l:'Form #1', segments:[{v:10,color:'var(--green)'},{v:5,color:'var(--amber)'},{v:2,color:'var(--red)'}]}]
+function stackedBarChart(items){
+  const totals=items.map(i=>i.segments.reduce((s,seg)=>s+seg.v,0));
+  const max=Math.max(...totals,1);
+  return items.map((i,idx)=>{
+    const total=totals[idx];
+    const segHtml=i.segments.map(seg=>{
+      const pct=total>0?(seg.v/max*100):0;
+      return seg.v>0?`<div style="width:${pct.toFixed(1)}%;background:${seg.color};height:100%" title="${seg.label||''}: ${seg.v}"></div>`:'';
+    }).join('');
+    return `<div class="bar-row">
+      <span class="bar-lbl" title="${i.l}">${i.l}</span>
+      <div class="bar-bg" style="display:flex">${segHtml}</div>
+      <span class="bar-val">${total}</span>
+    </div>`;
+  }).join('');
+}
 function setMain(html){document.getElementById('mainContent').innerHTML=html;}
 function setSidebar(html){document.getElementById('sidebar').innerHTML=html;}
 
@@ -577,13 +595,16 @@ function renderStudent(){
   const charts=`<div class="charts-row">
     <div class="chart-card"><div class="chart-title">Distribusi Tier</div>${barChart(['1 - Excellent','2 - Good','3 - Need Improvement','4 - At-Risk','5 - Critical'].map(t=>({l:t.replace(/^\d - /,''),v:data.filter(r=>r.tier===t).length})),'var(--blue)')}</div>
     <div class="chart-card"><div class="chart-title">Top 5 Batch (Student)</div>${barChart(Object.entries(chartDataS.reduce((acc,r)=>{acc[r.batch||'?']=(acc[r.batch||'?']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l,v])=>({l:l,v})))}</div>
-    <div class="chart-card"><div class="chart-title">NPS Submission <span style="color:var(--text3);font-weight:400">(seluruh form, bukan terakhir saja)</span></div>${barChart([
-      {l:'Promoter',v:data.reduce((s,r)=>s+n(r.jumlah_nps_promoter),0)},
-      {l:'Passive',v:data.reduce((s,r)=>s+n(r.jumlah_nps_passive),0)},
-      {l:'Detractor',v:data.reduce((s,r)=>s+n(r.jumlah_nps_detractor),0)},
-    ],['var(--green)','var(--amber)','var(--red)'])}
-    <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);font-size:10px;color:var(--text3)">${data.filter(r=>n(r.total_nps)===0).length.toLocaleString('id')} dari ${data.length.toLocaleString('id')} student belum pernah mengisi survey NPS</div>
-    </div>
+    <div class="chart-card"><div class="chart-title">NPS per Form <span style="color:var(--text3);font-weight:400">(stacked: Promoter/Passive/Detractor)</span></div>${stackedBarChart(
+      [1,2,3,4,5,6,7].map(fn=>({
+        l:'Form #'+fn,
+        segments:[
+          {v:data.reduce((s,r)=>s+n(r['form'+fn+'_promoter']),0),  color:'var(--green)', label:'Promoter'},
+          {v:data.reduce((s,r)=>s+n(r['form'+fn+'_passive']),0),   color:'var(--amber)', label:'Passive'},
+          {v:data.reduce((s,r)=>s+n(r['form'+fn+'_detractor']),0), color:'var(--red)',   label:'Detractor'},
+        ]
+      })).filter(item=>item.segments.reduce((s,seg)=>s+seg.v,0)>0)
+    )}</div>
   </div>`;
 
   // Display semua data (limit 2000 untuk performa)
