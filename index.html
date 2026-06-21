@@ -685,13 +685,22 @@ function openStudentDetail(i){
       </div>
       <button class="dp-close" onclick="closeDetail()">✕</button>
     </div>
-    ${n(r.jumlah_jo)>0?`<div style="background:var(--teal-bg);border:0.5px solid #7ECFB5;border-radius:9px;padding:9px 12px;font-size:12px;color:var(--teal-dk)">Job Offer (${r.jumlah_jo}x apply): <b>${(r.jo_date_history||r.jo_date||'').split('|').map(d=>d.trim()).filter(Boolean).join(', ')}</b>${r.status_student?' · '+r.status_student:''}</div>`:
+    ${n(r.jumlah_jo)>0?`<div style="background:var(--teal-bg);border:0.5px solid #7ECFB5;border-radius:9px;padding:9px 12px;font-size:12px;color:var(--teal-dk)">Job Offer: <b>${r.jumlah_jo}x apply</b>${r.status_student?' · '+r.status_student:''}</div>`:
     `<div style="background:var(--gray-bg);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--gray-dk)">Belum JO${r.status_student?' · Status: '+r.status_student:''}</div>`}
     <div style="margin-top:6px;font-size:11px;color:var(--text3)">Status Kelulusan: <b style="color:var(--text1)">${r.status_kelulusan||'—'}</b></div>
     <div class="dp-kpi">
       <div class="dp-kc"><div class="dp-kl">Kehadiran</div><div class="dp-kv" style="color:var(--purple)">${sc(r.pct_kehadiran)}%</div><div style="font-size:10px;color:var(--text3)">${r.student_hadir||0} dari ${r.jumlah_sesi_terlaksana||'?'} sesi</div></div>
       <div class="dp-kc"><div class="dp-kl">Avg Nilai</div><div class="dp-kv" style="color:var(--teal)">${sc(r.avg_nilai_akumulasi)}</div><div style="margin-top:3px">${tierBadge(r.tier)}</div></div>
     </div>
+    ${n(r.jumlah_jo)>0?`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+      <div class="fb-toggle" onclick="toggleFb(this)" style="cursor:pointer;background:var(--surface2);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:500">Job Offer — riwayat lengkap</span>
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${r.jumlah_jo} apply ▾</span>
+      </div>
+      <div class="fb-content" style="display:none;padding-left:4px">
+        ${(r.jo_date_history||r.jo_date||'').split('|').map(d=>d.trim()).filter(Boolean).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--teal)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">Job Offer</div>${d}</div>`).join('')}
+      </div>
+    </div>`:''}
     <div class="dp-sec" style="margin-top:4px">Feedback &amp; NPS</div>
     <div class="dp-kpi">
       <div class="dp-kc"><div class="dp-kl">Avg Session Rating</div><div class="dp-kv">${r.avg_session_rating||'—'}</div><div style="font-size:10px;color:var(--text3)">dari ${r.total_session_rating||0} rating</div></div>
