@@ -698,7 +698,10 @@ function openStudentDetail(i){
         <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${r.jumlah_jo} apply ▾</span>
       </div>
       <div class="fb-content" style="display:none;padding-left:4px">
-        ${(r.jo_date_history||r.jo_date||'').split('|').map(d=>d.trim()).filter(Boolean).map(d=>`<div class="logbook-item" style="border-left:3px solid var(--teal)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">Job Offer</div>${d}</div>`).join('')}
+        ${(r.jo_status_pairs||'').split('|').map(s=>s.trim()).filter(Boolean).map(s=>{
+          const [d,st]=s.split('::');
+          return `<div class="logbook-item" style="border-left:3px solid var(--teal)"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${d||'Tanggal tidak tercatat'}</div>${st||'<span style="color:var(--text3)">Status tidak tercatat</span>'}</div>`;
+        }).join('')}
       </div>
     </div>`:''}
     <div class="dp-sec" style="margin-top:4px">Feedback &amp; NPS</div>
