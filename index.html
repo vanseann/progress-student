@@ -169,10 +169,12 @@ async function reloadAll(){
 }
 
 async function loadSheet(key){
-  const url=URLS[key];
+  // Cache-busting: tambahkan timestamp di URL supaya browser/proxy CORS tidak
+  // mengembalikan response lama yang ke-cache, meski sumber Sheets sudah di-refresh.
+  const url=URLS[key]+(URLS[key].includes('?')?'&':'?')+'_cb='+Date.now();
   for(const proxy of PROXIES){
     try{
-      const r=await fetch(proxy(url));
+      const r=await fetch(proxy(url),{cache:'no-store'});
       if(!r.ok) continue;
       const t=await r.text();
       const lines=t.trim().split('\n').length;
