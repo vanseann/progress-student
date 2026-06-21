@@ -274,7 +274,9 @@ const POST_PROGRAM_KEYWORDS=/job matching|screening|mendan|kaiwa|pemantapan|ssw|
 function isDuringProgramBatch(batchName){
   if(!batchName) return false;
   if(POST_PROGRAM_KEYWORDS.test(batchName)) return false;
-  return /ausbildung|tokutei/i.test(batchName);
+  // FIX: sebelumnya hanya cek ausbildung/tokutei, sehingga batch Blue Collar/White Collar
+  // (dan program lain) hilang dari dropdown filter & chart meski mereka valid during-program.
+  return /ausbildung|tokutei|white collar|blue collar|gtog|unilever|english/i.test(batchName);
 }
 
 function tierBadge(t){
@@ -322,12 +324,27 @@ function stackedBarChart(items){
   }).join('');
 }
 function setMain(html){document.getElementById('mainContent').innerHTML=html;}
-function setSidebar(html){document.getElementById('sidebar').innerHTML=html;}
+function setSidebar(html){
+  // Simpan fokus & posisi cursor input aktif sebelum replace innerHTML,
+  // supaya mengetik di search/filter tidak kehilangan fokus tiap re-render
+  const active=document.activeElement;
+  let restoreSelector=null, restoreCursor=null;
+  if(active&&active.tagName==='INPUT'&&document.getElementById('sidebar').contains(active)){
+    if(active.id) restoreSelector=`#${active.id}`;
+    else if(active.getAttribute('list')) restoreSelector=`input[list="${active.getAttribute('list')}"]`;
+    restoreCursor=active.selectionStart;
+  }
+  document.getElementById('sidebar').innerHTML=html;
+  if(restoreSelector){
+    const el=document.querySelector(restoreSelector);
+    if(el){el.focus();if(restoreCursor!=null)el.setSelectionRange(restoreCursor,restoreCursor);}
+  }
+}
 
 function buildFilters(opts,fkey){
   const f=filters[fkey];
   let html='';
-  if(opts.search!==false) html+=`<div><div class="f-label">Cari</div><input class="f-input" value="${f.search||''}" placeholder="Ketik untuk cari..." oninput="filters['${fkey}'].search=this.value;renderTab()"></div>`;
+  if(opts.search!==false) html+=`<div><div class="f-label">Cari</div><input class="f-input" id="searchInput-${fkey}" value="${f.search||''}" placeholder="Ketik untuk cari..." oninput="debouncedApplyFilter('${fkey}','search',this.value)"></div>`;
   if(opts.program){
     const progs=[...new Set(DATA[fkey].map(r=>r.program).filter(p=>p&&isValidProgram(p)))].sort((a,b)=>a.localeCompare(b));
     html+=searchableSelect('Program',fkey,'program',progs,f.program,'Semua program');
@@ -337,7 +354,10 @@ function buildFilters(opts,fkey){
     html+=searchableSelect('Regional',fkey,'regional',regs,f.regional,'Semua regional');
   }
   if(opts.batch){
-    const batches=[...new Set(DATA[fkey].map(r=>r.batch).filter(b=>b&&isDuringProgramBatch(b)))].sort((a,b)=>a.localeCompare(b));
+    // FIX: batch options sekarang ikut filter program yang aktif — pilih Tokutei,
+    // dropdown batch otomatis hanya tampilkan batch Tokutei (bukan semua batch).
+    const baseForBatch=f.program?DATA[fkey].filter(r=>r.program===f.program):DATA[fkey];
+    const batches=[...new Set(baseForBatch.map(r=>r.batch).filter(b=>b&&isDuringProgramBatch(b)))].sort((a,b)=>a.localeCompare(b));
     html+=searchableSelect('Batch',fkey,'batch',batches,f.batch,'Semua batch');
   }
   if(opts.event){
@@ -365,6 +385,14 @@ function buildFilters(opts,fkey){
   return html;
 }
 
+// Debounce: tunda render sampai user berhenti mengetik ~250ms, supaya
+// input search/filter tidak lag akibat re-render seluruh dashboard tiap keystroke
+let _debounceTimer=null;
+function debouncedApplyFilter(fkey,field,value){
+  filters[fkey][field]=value||'';
+  clearTimeout(_debounceTimer);
+  _debounceTimer=setTimeout(()=>renderTab(),250);
+}
 // Searchable combobox: input + datalist, native browser autocomplete dengan search-as-you-type
 function searchableSelect(label,fkey,field,options,current,placeholder){
   const listId=`dl-${fkey}-${field}`;
@@ -372,12 +400,13 @@ function searchableSelect(label,fkey,field,options,current,placeholder){
   return `<div>
     <div class="f-label">${label}</div>
     <input class="f-input" list="${listId}" value="${current||''}" placeholder="${placeholder}"
-      oninput="applySearchableFilter('${fkey}','${field}',this.value)"
+      oninput="debouncedApplyFilter('${fkey}','${field}',this.value)"
       onchange="applySearchableFilter('${fkey}','${field}',this.value)">
     <datalist id="${listId}">${datalistOpts}</datalist>
   </div>`;
 }
 function applySearchableFilter(fkey,field,value){
+  clearTimeout(_debounceTimer);
   filters[fkey][field]=value||'';
   renderTab();
 }
