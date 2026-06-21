@@ -382,6 +382,13 @@ function buildFilters(opts,fkey){
       <div class="chip${f.jo==='Belum JO'?' active':''}" onclick="filters['${fkey}'].jo='Belum JO';renderTab()">Belum JO</div>
     </div></div>`;
   }
+  if(opts.statusKelulusan){
+    const sk=['Aktif During Program','Aktif Post Program','Done Post Program'];
+    html+=`<div class="divider"></div><div><div class="f-label">Status Kelulusan</div><div class="f-chips">
+      <div class="chip${!f.statusKelulusan?' active':''}" onclick="filters['${fkey}'].statusKelulusan='';renderTab()">Semua</div>
+      ${sk.map(s=>`<div class="chip${f.statusKelulusan===s?' active':''}" onclick="filters['${fkey}'].statusKelulusan='${s}';renderTab()">${s}</div>`).join('')}
+    </div></div>`;
+  }
   return html;
 }
 
@@ -578,11 +585,12 @@ function renderStudent(){
     if(f.batch&&!matchFilter(r.batch,f.batch)) return false;
     if(f.tier&&r.tier!==f.tier) return false;
     if(f.jo&&r.jo_flag!==f.jo) return false;
+    if(f.statusKelulusan&&r.status_kelulusan!==f.statusKelulusan) return false;
     if(f.event&&!(r.list_sesi||'').includes(f.event)) return false;
     return true;
   });
 
-  setSidebar(buildFilters({search:true,program:true,batch:true,event:true,tier:true,jo:true},'student')+`
+  setSidebar(buildFilters({search:true,program:true,batch:true,event:true,tier:true,jo:true,statusKelulusan:true},'student')+`
     <div class="divider"></div>
     <div class="stat-grid">
       <div class="stat-card"><div class="stat-v">${data.length.toLocaleString('id')}</div><div class="stat-l">Student</div></div>
@@ -675,8 +683,9 @@ function openStudentDetail(i){
       </div>
       <button class="dp-close" onclick="closeDetail()">✕</button>
     </div>
-    ${r.jo_date?`<div style="background:var(--teal-bg);border:0.5px solid #7ECFB5;border-radius:9px;padding:9px 12px;font-size:12px;color:var(--teal-dk)">Job Offer: <b>${r.jo_date}</b>${r.status_student?' · '+r.status_student:''}</div>`:
+    ${n(r.jumlah_jo)>0?`<div style="background:var(--teal-bg);border:0.5px solid #7ECFB5;border-radius:9px;padding:9px 12px;font-size:12px;color:var(--teal-dk)">Job Offer (${r.jumlah_jo}x apply): <b>${(r.jo_date_history||r.jo_date||'').split('|').map(d=>d.trim()).filter(Boolean).join(', ')}</b>${r.status_student?' · '+r.status_student:''}</div>`:
     `<div style="background:var(--gray-bg);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--gray-dk)">Belum JO${r.status_student?' · Status: '+r.status_student:''}</div>`}
+    <div style="margin-top:6px;font-size:11px;color:var(--text3)">Status Kelulusan: <b style="color:var(--text1)">${r.status_kelulusan||'—'}</b></div>
     <div class="dp-kpi">
       <div class="dp-kc"><div class="dp-kl">Kehadiran</div><div class="dp-kv" style="color:var(--purple)">${sc(r.pct_kehadiran)}%</div><div style="font-size:10px;color:var(--text3)">${r.student_hadir||0} dari ${r.jumlah_sesi_terlaksana||'?'} sesi</div></div>
       <div class="dp-kc"><div class="dp-kl">Avg Nilai</div><div class="dp-kv" style="color:var(--teal)">${sc(r.avg_nilai_akumulasi)}</div><div style="margin-top:3px">${tierBadge(r.tier)}</div></div>
