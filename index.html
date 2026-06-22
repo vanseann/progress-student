@@ -12,7 +12,7 @@
   --text:#1C1B18;--text2:#6B6960;--text3:#A8A59C;
   --purple:#34469C;--purple-bg:#E8EAF6;--purple-dk:#222F6B;
   --teal:#0D8A85;--teal-bg:#DFF5F3;--teal-dk:#0A6864;
-  --amber:#8A5200;--amber-bg:#FEF3DC;--amber-dk:#5C3500;
+  --amber:#B8740A;--amber-bg:#FEF3DC;--amber-dk:#7A4D07;
   --red:#B02828;--red-bg:#FCEAEA;--red-dk:#7A1A1A;
   --green:#2E6B12;--green-bg:#EAF5E1;--green-dk:#1E4A0C;
   --blue:#1A5FA8;--blue-bg:#E5F0FB;--blue-dk:#0D3E73;
@@ -61,9 +61,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .chart-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
 .bar-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
 .bar-lbl{font-size:10px;color:var(--text2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bar-bg{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.bar-bg{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:3px;transition:width .5s;}
 .bar-val{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);min-width:28px;text-align:right;}
+.bar-seg{height:100%;position:relative;cursor:default;}
+.chart-tooltip{position:fixed;background:var(--text);color:#fff;font-size:10px;padding:6px 9px;border-radius:6px;pointer-events:none;z-index:1000;white-space:nowrap;opacity:0;transition:opacity .08s;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.chart-tooltip.show{opacity:1;}
+.chart-tooltip b{font-family:'DM Mono',monospace;}
 .tcard{background:var(--surface);border:0.5px solid var(--border-md);border-radius:12px;overflow:hidden;}
 .thead-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid var(--border);}
 .ttitle{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
@@ -298,12 +302,15 @@ function pctBar(v){
   const val=Math.min(n(v),100);
   return `<div class="pct-bar"><div class="pbar-bg"><div class="pbar-fill" style="width:${val}%"></div></div><span style="font-family:'DM Mono',monospace;font-size:10px">${val>0?val.toFixed(1)+'%':'—'}</span></div>`;
 }
+function escTip(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 function barChart(items,color='var(--purple)'){
   const colors=Array.isArray(color)?color:null;
   const max=Math.max(...items.map(i=>i.v),1);
   return items.map((i,idx)=>`<div class="bar-row">
-    <span class="bar-lbl" title="${i.l}">${i.l}</span>
-    <div class="bar-bg"><div class="bar-fill" style="width:${(i.v/max*100).toFixed(1)}%;background:${colors?colors[idx]||colors[0]:color}"></div></div>
+    <span class="bar-lbl">${i.l}</span>
+    <div class="bar-bg" onmousemove="showChartTip(event,'${escTip(i.l)}: <b>${n(i.v).toFixed(Number.isInteger(i.v)?0:1)}</b>')" onmouseleave="hideChartTip()">
+      <div class="bar-fill" style="width:${(i.v/max*100).toFixed(1)}%;background:${colors?colors[idx]||colors[0]:color}"></div>
+    </div>
     <span class="bar-val">${n(i.v)>0?n(i.v).toFixed(Number.isInteger(i.v)?0:1):0}</span>
   </div>`).join('');
 }
@@ -316,14 +323,36 @@ function stackedBarChart(items){
     const total=totals[idx];
     const segHtml=i.segments.map(seg=>{
       const pct=total>0?(seg.v/max*100):0;
-      return seg.v>0?`<div style="width:${pct.toFixed(1)}%;background:${seg.color};height:100%" title="${seg.label||''}: ${seg.v}"></div>`:'';
+      const tip=escTip(`${i.l} — ${seg.label||''}: <b>${seg.v}</b>`);
+      return seg.v>0?`<div class="bar-seg" style="width:${pct.toFixed(1)}%;background:${seg.color}" onmousemove="showChartTip(event,'${tip}')" onmouseleave="hideChartTip()"></div>`:'';
     }).join('');
     return `<div class="bar-row">
-      <span class="bar-lbl" title="${i.l}">${i.l}</span>
+      <span class="bar-lbl">${i.l}</span>
       <div class="bar-bg" style="display:flex">${segHtml}</div>
       <span class="bar-val">${total}</span>
     </div>`;
   }).join('');
+}
+// Tooltip global instan: 1 elemen DOM di-reuse untuk semua bar chart,
+// posisi mengikuti mouse, muncul langsung tanpa delay (beda dgn title attribute browser)
+function showChartTip(evt,html){
+  let tip=document.getElementById('chartTooltip');
+  if(!tip){
+    tip=document.createElement('div');
+    tip.id='chartTooltip';
+    tip.className='chart-tooltip';
+    document.body.appendChild(tip);
+  }
+  tip.innerHTML=html;
+  tip.classList.add('show');
+  const x=evt.clientX+12, y=evt.clientY+12;
+  const tw=tip.offsetWidth||120;
+  tip.style.left=(x+tw>window.innerWidth?evt.clientX-tw-12:x)+'px';
+  tip.style.top=y+'px';
+}
+function hideChartTip(){
+  const tip=document.getElementById('chartTooltip');
+  if(tip) tip.classList.remove('show');
 }
 function setMain(html){document.getElementById('mainContent').innerHTML=html;}
 function setSidebar(html){
@@ -647,6 +676,47 @@ function renderStudent(){
     })()}</div>
   </div>`;
 
+  // ── Tren Tier vs Performa: tabel ringkasan + bar chart per tier ──
+  // Menunjukkan hubungan tier dengan kehadiran, nilai, dan status JO —
+  // dihitung dari data yang sudah terfilter, jadi reactive terhadap filter aktif.
+  const tierOrder=['1 - Excellent','2 - Good','3 - Need Improvement','4 - At-Risk','5 - Critical'];
+  const tierStats=tierOrder.map(t=>{
+    const rows=data.filter(r=>r.tier===t);
+    const jmlJO=rows.filter(r=>r.jo_flag==='Dapat JO').length;
+    return {
+      tier:t.replace(/^\d - /,''),
+      jumlah:rows.length,
+      avgHadir:rows.length?avg(rows,'pct_kehadiran'):0,
+      avgNilai:rows.length?avg(rows,'avg_nilai_akumulasi'):0,
+      pctJO:rows.length?(jmlJO/rows.length*100):0,
+      jmlJO
+    };
+  }).filter(t=>t.jumlah>0);
+
+  const tierTrend=`<div class="chart-card" style="margin-top:14px">
+    <div class="chart-title">Tier vs Performa <span style="color:var(--text3);font-weight:400">(kehadiran, nilai, status JO per tier)</span></div>
+    <table style="margin-top:8px">
+      <thead><tr>
+        <th>Tier</th><th>Jumlah</th><th>Avg Kehadiran</th><th>Avg Nilai</th><th>Dapat JO</th><th>% Dapat JO</th>
+      </tr></thead>
+      <tbody>
+        ${tierStats.map(t=>`<tr>
+          <td>${tierBadge(tierOrder.find(x=>x.includes(t.tier)))}</td>
+          <td style="font-family:'DM Mono',monospace">${t.jumlah}</td>
+          <td style="font-family:'DM Mono',monospace">${t.avgHadir.toFixed(1)}%</td>
+          <td style="font-family:'DM Mono',monospace">${t.avgNilai>0?t.avgNilai.toFixed(1):'—'}</td>
+          <td style="font-family:'DM Mono',monospace">${t.jmlJO}</td>
+          <td style="font-family:'DM Mono',monospace;color:${t.pctJO>=20?'var(--green)':'var(--text2)'}">${t.pctJO.toFixed(1)}%</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="charts-row" style="margin-top:14px">
+      <div class="chart-card" style="background:var(--surface2)"><div class="chart-title" style="font-size:11px">Avg Kehadiran per Tier</div>${barChart(tierStats.map(t=>({l:t.tier,v:Math.round(t.avgHadir*10)/10})),'var(--purple)')}</div>
+      <div class="chart-card" style="background:var(--surface2)"><div class="chart-title" style="font-size:11px">Avg Nilai per Tier</div>${barChart(tierStats.map(t=>({l:t.tier,v:Math.round(t.avgNilai*10)/10})),'var(--teal)')}</div>
+      <div class="chart-card" style="background:var(--surface2)"><div class="chart-title" style="font-size:11px">% Dapat JO per Tier</div>${barChart(tierStats.map(t=>({l:t.tier,v:Math.round(t.pctJO*10)/10})),'var(--green)')}</div>
+    </div>
+  </div>`;
+
   // Display semua data (limit 2000 untuk performa)
   const LIMIT=2000;
   const displayed=data.slice(0,LIMIT);
@@ -663,7 +733,7 @@ function renderStudent(){
     <td>${joBadge(r.jo_flag)}</td>
   </tr>`).join('');
 
-  setMain(kpi+charts+`<div class="tcard"><div class="thead-row"><span class="ttitle">Daftar Student</span><span class="tcnt">${data.length.toLocaleString('id')} student${data.length>LIMIT?' ('+LIMIT+' pertama — gunakan filter)':''}</span></div>
+  setMain(kpi+charts+tierTrend+`<div class="tcard"><div class="thead-row"><span class="ttitle">Daftar Student</span><span class="tcnt">${data.length.toLocaleString('id')} student${data.length>LIMIT?' ('+LIMIT+' pertama — gunakan filter)':''}</span></div>
     <div class="twrap"><table><thead><tr>
       <th>Nama</th><th>Batch</th><th>Program</th><th>Regional</th>
       <th>Kehadiran</th><th>Avg Nilai</th><th>Tier</th><th>NPS</th><th>Issues</th><th>JO</th>
