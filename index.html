@@ -341,6 +341,24 @@ function joBadge(f){
 function lpBadge(r){
   return r.learning_plan_url?'<span class="badge lp-y">Ada</span>':'<span class="badge lp-n">—</span>';
 }
+// Konversi link Google Drive (format apapun: uc?id=, file/d/.../view, dst) jadi
+// format /preview yang bisa di-embed via iframe tanpa memaksa download.
+function driveEmbedUrl(url,mode){
+  if(!url) return null;
+  let id=null;
+  let m=url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) id=m[1];
+  if(!id){
+    m=url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) id=m[1];
+  }
+  if(!id) return null;
+  // 'preview' = format viewer Google Drive (toolbar lengkap, tidak memicu download
+  // baik dibuka di tab baru maupun di-embed iframe). 'view' tersedia sebagai alternatif
+  // jika suatu saat 'preview' bermasalah untuk tipe file tertentu.
+  const suffix=mode==='view'?'/view':'/preview';
+  return `https://drive.google.com/file/d/${id}${suffix}`;
+}
 function pctBar(v){
   const val=Math.min(n(v),100);
   return `<div class="pct-bar"><div class="pbar-bg"><div class="pbar-fill" style="width:${val}%"></div></div><span class="mono" style="font-size:10px">${val>0?val.toFixed(1)+'%':'—'}</span></div>`;
@@ -814,13 +832,17 @@ function openStudentDetail(i){
       <div class="trio-card"><div class="trio-v">${n(r.jumlah_1on1_interview)}</div><div class="trio-l">1on1 Interview</div></div>
       <div class="trio-card"><div class="trio-v">${n(r.jumlah_docrev)}</div><div class="trio-l">Document Review</div></div>
     </div>
-    ${r.learning_plan_url?`<a class="doc-link" href="${r.learning_plan_url}" target="_blank" rel="noopener">
-      <div class="doc-link-icon">PDF</div>
-      <div style="overflow:hidden">
-        <div class="doc-link-text">${r.learning_plan_filename||'Learning Plan'}</div>
-        <div class="doc-link-sub">Buka dokumen learning plan ↗</div>
-      </div>
-    </a>`:`<div class="doc-empty">Learning plan belum dibuat untuk student ini</div>`}
+    ${(()=>{
+      const viewUrl=driveEmbedUrl(r.learning_plan_url);
+      if(!viewUrl) return '<div class="doc-empty">Learning plan belum dibuat untuk student ini</div>';
+      return `<a class="doc-link" href="${viewUrl}" target="_blank" rel="noopener">
+        <div class="doc-link-icon">PDF</div>
+        <div style="overflow:hidden;text-align:left">
+          <div class="doc-link-text">Learning Plan</div>
+          <div class="doc-link-sub">Buka dokumen (preview) ↗</div>
+        </div>
+      </a>`;
+    })()}
 
     ${n(r.jumlah_jo)>0?`<div style="display:flex;flex-direction:column;gap:5px">
       <div class="fb-toggle" onclick="toggleFb(this)" style="cursor:pointer;background:var(--surface2);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
