@@ -135,13 +135,14 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .loading-bar-fill{height:100%;background:var(--stamp);border-radius:1px;animation:ld 1.5s ease-in-out infinite;}
 @keyframes ld{0%{width:0%;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0%;margin-left:100%}}
 
-/* ── Dokumen link (Learning Plan): kartu kecil bertema lampiran dokumen ── */
-.doc-link{display:flex;align-items:center;gap:9px;background:var(--gold-bg);border:1px solid #D9C58A;border-radius:9px;padding:10px 12px;text-decoration:none;color:var(--gold);transition:opacity .12s;}
+/* ── Dokumen link (Learning Plan): tombol toggle + iframe embed inline ── */
+.doc-link{display:flex;align-items:center;gap:9px;background:var(--gold-bg);border:1px solid #D9C58A;border-radius:9px;padding:10px 12px;text-decoration:none;color:var(--gold);transition:opacity .12s;cursor:pointer;width:100%;font-family:inherit;font-size:inherit;}
 .doc-link:hover{opacity:.82;}
 .doc-link-icon{width:26px;height:26px;border-radius:6px;background:var(--gold);color:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;}
 .doc-link-text{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .doc-link-sub{font-size:9px;color:var(--gold);opacity:.75;margin-top:1px;}
 .doc-empty{font-size:11px;color:var(--ink3);background:var(--surface2);border-radius:9px;padding:10px 12px;}
+.doc-embed-wrap{margin-top:8px;border:1px solid var(--border-md);border-radius:9px;overflow:hidden;background:var(--surface2);}
 
 /* ── Progress trio: 1on1 Interview / Document Review sebagai mini-stat ── */
 .trio-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -833,15 +834,16 @@ function openStudentDetail(i){
       <div class="trio-card"><div class="trio-v">${n(r.jumlah_docrev)}</div><div class="trio-l">Document Review</div></div>
     </div>
     ${(()=>{
-      const viewUrl=driveEmbedUrl(r.learning_plan_url);
-      if(!viewUrl) return '<div class="doc-empty">Learning plan belum dibuat untuk student ini</div>';
-      return `<a class="doc-link" href="${viewUrl}" target="_blank" rel="noopener">
+      const embedUrl=driveEmbedUrl(r.learning_plan_url);
+      if(!embedUrl) return '<div class="doc-empty">Learning plan belum dibuat untuk student ini</div>';
+      return `<button type="button" class="doc-link" onclick="toggleDocEmbed(this,'${embedUrl}')">
         <div class="doc-link-icon">PDF</div>
         <div style="overflow:hidden;text-align:left">
           <div class="doc-link-text">Learning Plan</div>
-          <div class="doc-link-sub">Buka dokumen (preview) ↗</div>
+          <div class="doc-link-sub">Tampilkan dokumen ▾</div>
         </div>
-      </a>`;
+      </button>
+      <div class="doc-embed-slot"></div>`;
     })()}
 
     ${n(r.jumlah_jo)>0?`<div style="display:flex;flex-direction:column;gap:5px">
@@ -925,6 +927,37 @@ function toggleFb(el){
   const isOpen=content.style.display==='block';
   content.style.display=isOpen?'none':'block';
   if(arrow) arrow.textContent=arrow.textContent.replace(isOpen?'▴':'▾',isOpen?'▾':'▴');
+}
+// Toggle embed PDF learning plan inline di panel detail.
+// PENTING: jangan pakai loading="lazy" di sini — Chrome menganggap iframe yang baru
+// di-inject ke DOM (atau berada di overlay yang baru muncul) sebagai "hidden" sesaat,
+// sehingga src tidak langsung di-assign dan .src terbaca undefined dari luar.
+// width/height eksplisit + tanpa lazy memastikan src langsung di-fetch begitu di-set.
+function toggleDocEmbed(btn,embedUrl){
+  const slot=btn.nextElementSibling;
+  const sub=btn.querySelector('.doc-link-sub');
+  const isOpen=slot.classList.contains('open');
+  if(isOpen){
+    slot.classList.remove('open');
+    slot.innerHTML='';
+    if(sub) sub.textContent='Tampilkan dokumen ▾';
+  }else{
+    slot.classList.add('open');
+    const iframe=document.createElement('iframe');
+    iframe.width='100%';
+    iframe.height='360';
+    iframe.style.border='none';
+    iframe.style.display='block';
+    iframe.allow='autoplay';
+    const wrap=document.createElement('div');
+    wrap.className='doc-embed-wrap';
+    wrap.appendChild(iframe);
+    slot.appendChild(wrap);
+    // Set src setelah elemen sudah terpasang di DOM dengan ukuran final,
+    // supaya Chrome tidak mengevaluasinya sebagai hidden/zero-size iframe.
+    iframe.src=embedUrl;
+    if(sub) sub.textContent='Sembunyikan dokumen ▴';
+  }
 }
 function closeDetail(){document.getElementById('detailOverlay').style.display='none';}
 </script>
